@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<title>ราคาวัสดุก่อสร้าง</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    font-family: "Segoe UI", "Tahoma", "Sarabun", sans-serif;
+    margin: 0;
+    padding: 20px;
+    background: #f4f6f8;
+    color: #1a1a1a;
+  }
+  h1 { font-size: 20px; margin: 0 0 14px 0; }
+  .toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    background: #fff;
+    padding: 14px;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    margin-bottom: 14px;
+    align-items: center;
+  }
+  .toolbar label {
+    font-size: 13px;
+    color: #444;
+    margin-right: 4px;
+  }
+  .field { display: flex; flex-direction: column; gap: 4px; }
+  select, input[type=text] {
+    padding: 7px 9px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 14px;
+    background: #fff;
+    min-width: 150px;
+  }
+  input[type=text] { min-width: 240px; }
+  .stats { font-size: 13px; color: #666; margin-left: auto; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    font-size: 13px;
+  }
+  thead th {
+    background: #1f2937;
+    color: #fff;
+    text-align: left;
+    padding: 10px 8px;
+    position: sticky;
+    top: 0;
+    cursor: pointer;
+    user-select: none;
+    white-space: nowrap;
+  }
+  thead th:hover { background: #374151; }
+  tbody td {
+    padding: 7px 8px;
+    border-bottom: 1px solid #eee;
+    vertical-align: top;
+  }
+  tbody tr:hover { background: #f0f7ff; }
+  td.num, th.num { text-align: right; white-space: nowrap; }
+  .table-wrap {
+    max-height: 72vh;
+    overflow: auto;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  }
+  .table-wrap table { box-shadow: none; }
+  .empty { text-align: center; padding: 30px; color: #888; }
+  .badge {
+    display: inline-block;
+    background: #e5e7eb;
+    color: #333;
+    border-radius: 4px;
+    padding: 1px 6px;
+    font-size: 11px;
+    margin-right: 4px;
+  }
+  button.reset {
+    padding: 7px 12px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    background: #fff;
+    cursor: pointer;
+    font-size: 13px;
+  }
+  button.reset:hover { background: #f0f0f0; }
+  button.reset.active { background: #2563eb; color: #fff; border-color: #2563eb; }
+  button.reset.active:hover { background: #1d4ed8; }
+  button.export {
+    padding: 7px 14px;
+    border: none;
+    border-radius: 6px;
+    background: #2563eb;
+    color: #fff;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+  }
+  button.export:hover { background: #1d4ed8; }
+  button.export:disabled { background: #93b4e8; cursor: not-allowed; }
+  button.clearsel {
+    padding: 7px 12px;
+    border: 1px solid #dc2626;
+    color: #dc2626;
+    border-radius: 6px;
+    background: #fff;
+    cursor: pointer;
+    font-size: 13px;
+  }
+  button.clearsel:hover { background: #fee2e2; }
+  td.chk, th.chk { width: 34px; text-align: center; }
+  .selbar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #eef2ff;
+    border: 1px solid #c7d2fe;
+    padding: 10px 14px;
+    border-radius: 8px;
+    margin-bottom: 14px;
+  }
+  .selbar .count { font-size: 13px; color: #333; }
+  .selbar .count b { color: #2563eb; }
+  .hint {
+    padding: 40px;
+    text-align: center;
+    color: #777;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    font-size: 14px;
+  }
+  #errorBox {
+    display: none;
+    padding: 20px;
+    text-align: center;
+    color: #b91c1c;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: 8px;
+    margin-bottom: 14px;
+    font-size: 13px;
+  }
+
+  #printArea { display: none; }
+  @media print {
+    @page { size: portrait; margin: 12mm; }
+    html, body { height: auto !important; margin: 0; padding: 0; }
+    body > *:not(#printArea) { display: none !important; }
+    #printArea {
+      display: block !important;
+      position: static;
+      width: 100%;
+      padding: 0;
+    }
+    #printArea h2 { font-size: 16px; margin-bottom: 4px; }
+    #printArea .meta { font-size: 11px; color: #555; margin-bottom: 12px; }
+    #printArea table { width: 100%; border-collapse: collapse; font-size: 11px; }
+    #printArea th, #printArea td { border: 1px solid #999; padding: 5px 6px; text-align: left; }
+    #printArea td.num, #printArea th.num { text-align: right; }
+    #printArea tr { page-break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+
+<h1>ราคาวัสดุก่อสร้าง (สนค. กระทรวงพาณิชย์)</h1>
+<p style="margin:-8px 0 14px 0;font-size:13px;color:#666;">ข้อมูลอ้างอิงจาก <a href="https://www.tpso.go.th/economic-data/price-struct" target="_blank" rel="noopener">สำนักงานนโยบายและยุทธศาสตร์การค้า กระทรวงพาณิชย์ (tpso.go.th)</a></p>
+
+<div class="toolbar">
+  <div class="field">
+    <label>เดือน</label>
+    <select id="filterMonth"><option value="">-- เลือกเดือน --</option></select>
+  </div>
+  <div class="field">
+    <label>จังหวัด</label>
+    <select id="filterProvince"><option value="">-- เลือกจังหวัด --</option></select>
+  </div>
+  <div class="field">
+    <label>หมวดสินค้า</label>
+    <select id="filterCat"><option value="">ทั้งหมด</option></select>
+  </div>
+  <div class="field">
+    <label>ค้นหารายการ</label>
+    <input type="text" id="searchBox" placeholder="พิมพ์ชื่อวัสดุ เช่น หินคลุก, ยูคาลิปตัส">
+  </div>
+  <button class="export" id="searchBtn" onclick="render()">ค้นหา</button>
+  <button class="reset" onclick="resetFilters()">ล้างตัวกรอง</button>
+  <div class="stats" id="statsBox"></div>
+</div>
+
+<div id="errorBox"></div>
+
+<div class="selbar">
+  <span class="count">เลือกไว้ <b id="selCount">0</b> รายการ</span>
+  <button class="reset" id="toggleSelectedBtn" onclick="toggleShowSelected()">แสดงเฉพาะที่เลือก</button>
+  <button class="export" id="exportBtn" onclick="exportPdf()" disabled>ส่งออก PDF</button>
+  <button class="clearsel" onclick="clearSelection()">ล้างรายการที่เลือก</button>
+</div>
+
+<div id="hintBox" class="hint">กรุณาเลือกเดือนและจังหวัดก่อน เพื่อโหลดข้อมูลราคา</div>
+
+<div class="table-wrap" id="tableWrap" style="display:none;">
+<table id="dataTable">
+  <thead>
+    <tr>
+      <th class="chk"><input type="checkbox" id="selectAllVisible" title="เลือกทั้งหมดที่กรองไว้"></th>
+      <th data-key="month">เดือน</th>
+      <th data-key="province">จังหวัด</th>
+      <th data-key="catname">หมวดสินค้า</th>
+      <th data-key="item">รายการ</th>
+      <th data-key="unit">หน่วย</th>
+      <th data-key="price_num" class="num">ราคา</th>
+    </tr>
+  </thead>
+  <tbody id="tbody"></tbody>
+</table>
+</div>
+
+<div id="printArea">
+  <h2>ราคาวัสดุก่อสร้างอ้างอิงจากสำนักงานนโยบายและยุทธศาสตร์การค้า กระทรวงพาณิชย์</h2>
+  <div class="meta">ที่มา: https://www.tpso.go.th/economic-data/price-struct</div>
+  <div class="meta" id="printMeta"></div>
+  <table>
+    <thead>
+      <tr>
+        <th>เดือน</th>
+        <th>จังหวัด</th>
+        <th>หมวดสินค้า</th>
+        <th>รายการ</th>
+        <th>หน่วย</th>
+        <th class="num">ราคา</th>
+      </tr>
+    </thead>
+    <tbody id="printTbody"></tbody>
+  </table>
+</div>
+
+<script>
+const BASE_URL = location.protocol === "file:" ? "https://raw.githubusercontent.com/dstaokung/material-price-data/main/" : "./";
+const MONTHS = [["012569", "มกราคม 2569"], ["022569", "กุมภาพันธ์ 2569"], ["032569", "มีนาคม 2569"], ["042569", "เมษายน 2569"], ["052569", "พฤษภาคม 2569"], ["062569", "มิถุนายน 2569"]];
+const PROVINCES = ["กทม", "ฉะเชิงเทรา", "ชลบุรี"];
+const CATS = [["01", "วัสดุเทหล่อกับที่"], ["02", "วัสดุก่อ"], ["03", "ชิ้นส่วนโครงสร้างสำเร็จรูป"], ["04", "วัสดุชิ้นส่วนหน้าตัดรูปต่างๆ"], ["05", "วัสดุท่อ"], ["06", "วัสดุลวดตาข่าย มุ้งลวด ลวดหนาม"], ["07", "วัสดุฉนวน"], ["08", "วัสดุแผ่นซ้อนทับ"], ["09", "วัสดุแผ่นแข็ง"], ["10", "วัสดุตกแต่งผิว"], ["11", "วัสดุไม้"], ["12", "วัสดุฉาบผิว"], ["13", "วัสดุขัดผิว"], ["14", "วัสดุชิ้นส่วนสำเร็จรูป"], ["15", "วัสดุผลิตภัณฑ์"], ["16", "วัสดุผสมคอนกรีต"], ["17", "วัสดุถม/รองพื้น"], ["18", "วัสดุและอุปกรณ์งานประปา"], ["19", "วัสดุและอุปกรณ์งานสุขาภิบาล"], ["20", "วัสดุและอุปกรณ์งานไฟฟ้า"], ["21", "เครื่องสุขภัณฑ์"]];
+
+const MONTH_LABEL = new Map(MONTHS);
+const CAT_NAME = new Map(CATS);
+const cache = {}; // "monthcode|province" -> array of full rows
+
+let DATA = []; // currently loaded rows (one month+province)
+let DATA_BY_ID = new Map();
+const selected = new Map(); // id -> row
+
+const monthSel = document.getElementById('filterMonth');
+const provSel = document.getElementById('filterProvince');
+const catSel = document.getElementById('filterCat');
+const searchBox = document.getElementById('searchBox');
+const tbody = document.getElementById('tbody');
+const statsBox = document.getElementById('statsBox');
+const selectAllVisible = document.getElementById('selectAllVisible');
+const selCountEl = document.getElementById('selCount');
+const exportBtn = document.getElementById('exportBtn');
+const hintBox = document.getElementById('hintBox');
+const tableWrap = document.getElementById('tableWrap');
+const errorBox = document.getElementById('errorBox');
+const toggleSelectedBtn = document.getElementById('toggleSelectedBtn');
+
+let showOnlySelected = false;
+
+MONTHS.forEach(([code, label]) => {
+  const opt = document.createElement('option');
+  opt.value = code;
+  opt.textContent = label;
+  monthSel.appendChild(opt);
+});
+const ALL_PROVINCES = '__ALL__';
+(() => {
+  const opt = document.createElement('option');
+  opt.value = ALL_PROVINCES;
+  opt.textContent = 'ทุกจังหวัด';
+  provSel.appendChild(opt);
+})();
+PROVINCES.forEach(p => {
+  const opt = document.createElement('option');
+  opt.value = p;
+  opt.textContent = p;
+  provSel.appendChild(opt);
+});
+CATS.forEach(([code, name]) => {
+  const opt = document.createElement('option');
+  opt.value = code;
+  opt.textContent = code + ' - ' + name;
+  catSel.appendChild(opt);
+});
+
+let sortKey = null;
+let sortDir = 1;
+let currentVisibleIds = [];
+
+function fmtPrice(row) {
+  if (row.price_num === null || row.price_num === undefined) return row.price_disp || '';
+  return row.price_num.toLocaleString('th-TH', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+}
+
+function getFilteredRows() {
+  const cv = catSel.value;
+  const sv = showOnlySelected ? '' : searchBox.value.trim().toLowerCase();
+
+  const source = showOnlySelected ? Array.from(selected.values()) : DATA;
+
+  let rows = source.filter(r => {
+    if (cv && r.catcode !== cv) return false;
+    if (sv && !r.item.toLowerCase().includes(sv)) return false;
+    return true;
+  });
+
+  if (sortKey) {
+    rows = rows.slice().sort((a, b) => {
+      let av = a[sortKey], bv = b[sortKey];
+      if (sortKey === 'price_num') {
+        av = av === null ? -Infinity : av;
+        bv = bv === null ? -Infinity : bv;
+        return (av - bv) * sortDir;
+      }
+      av = (av || '').toString();
+      bv = (bv || '').toString();
+      return av.localeCompare(bv, 'th') * sortDir;
+    });
+  }
+  return rows;
+}
+
+function updateSelUI() {
+  selCountEl.textContent = selected.size.toLocaleString('th-TH');
+  exportBtn.disabled = selected.size === 0;
+  if (currentVisibleIds.length === 0) {
+    selectAllVisible.checked = false;
+    selectAllVisible.indeterminate = false;
+  } else {
+    const selectedVisibleCount = currentVisibleIds.filter(id => selected.has(id)).length;
+    selectAllVisible.checked = selectedVisibleCount === currentVisibleIds.length;
+    selectAllVisible.indeterminate = selectedVisibleCount > 0 && selectedVisibleCount < currentVisibleIds.length;
+  }
+}
+
+function toggleRow(id, checked) {
+  if (checked) {
+    selected.set(id, DATA_BY_ID.get(id));
+  } else {
+    selected.delete(id);
+  }
+  updateSelUI();
+}
+
+function render() {
+  const rows = getFilteredRows();
+
+  const MAX_ROWS = 3000;
+  const shown = rows.slice(0, MAX_ROWS);
+  currentVisibleIds = shown.map(r => r.id);
+
+  tbody.innerHTML = '';
+  if (shown.length === 0) {
+    const emptyMsg = showOnlySelected ? 'ยังไม่ได้เลือกรายการใด' : 'ไม่พบรายการที่ตรงกับตัวกรอง';
+    tbody.innerHTML = '<tr><td colspan="7" class="empty">' + emptyMsg + '</td></tr>';
+  } else {
+    const frag = document.createDocumentFragment();
+    shown.forEach(r => {
+      const tr = document.createElement('tr');
+      const checked = selected.has(r.id) ? 'checked' : '';
+      tr.innerHTML =
+        '<td class="chk"><input type="checkbox" data-id="' + r.id + '" ' + checked + '></td>' +
+        '<td>' + r.month + '</td>' +
+        '<td>' + r.province + '</td>' +
+        '<td><span class="badge">' + r.catcode + '</span>' + r.catname + '</td>' +
+        '<td>' + r.item + '</td>' +
+        '<td>' + r.unit + '</td>' +
+        '<td class="num">' + fmtPrice(r) + '</td>';
+      frag.appendChild(tr);
+    });
+    tbody.appendChild(frag);
+    tbody.querySelectorAll('input[type=checkbox]').forEach(cb => {
+      cb.addEventListener('change', () => toggleRow(cb.getAttribute('data-id'), cb.checked));
+    });
+  }
+
+  let statsText = rows.length.toLocaleString('th-TH') + ' รายการ';
+  if (rows.length > MAX_ROWS) statsText += ' (แสดง ' + MAX_ROWS.toLocaleString('th-TH') + ' แถวแรก — โปรดกรองเพิ่มเติม)';
+  statsBox.textContent = statsText;
+
+  updateSelUI();
+}
+
+selectAllVisible.addEventListener('change', () => {
+  if (selectAllVisible.checked) {
+    currentVisibleIds.forEach(id => selected.set(id, DATA_BY_ID.get(id)));
+  } else {
+    currentVisibleIds.forEach(id => selected.delete(id));
+  }
+  render();
+});
+
+function clearSelection() {
+  selected.clear();
+  render();
+}
+
+function toggleShowSelected() {
+  showOnlySelected = !showOnlySelected;
+  toggleSelectedBtn.textContent = showOnlySelected ? 'แสดงทั้งหมด' : 'แสดงเฉพาะที่เลือก';
+  toggleSelectedBtn.classList.toggle('active', showOnlySelected);
+
+  if (showOnlySelected) {
+    hintBox.style.display = 'none';
+    errorBox.style.display = 'none';
+    tableWrap.style.display = 'block';
+  } else if (!monthSel.value || !provSel.value) {
+    tableWrap.style.display = 'none';
+    hintBox.style.display = 'block';
+    hintBox.textContent = 'กรุณาเลือกเดือนและจังหวัดก่อน เพื่อโหลดข้อมูลราคา';
+  } else {
+    tableWrap.style.display = 'block';
+  }
+  render();
+}
+
+function exitShowSelected() {
+  if (!showOnlySelected) return;
+  showOnlySelected = false;
+  toggleSelectedBtn.textContent = 'แสดงเฉพาะที่เลือก';
+  toggleSelectedBtn.classList.remove('active');
+}
+
+function exportPdf() {
+  if (selected.size === 0) return;
+  const rows = Array.from(selected.values());
+  rows.sort((a, b) => {
+    const am = a.monthcode.localeCompare(b.monthcode);
+    if (am !== 0) return am;
+    const ap = a.province.localeCompare(b.province, 'th');
+    if (ap !== 0) return ap;
+    return a.item.localeCompare(b.item, 'th');
+  });
+
+  const printTbody = document.getElementById('printTbody');
+  printTbody.innerHTML = '';
+  rows.forEach(r => {
+    const tr = document.createElement('tr');
+    tr.innerHTML =
+      '<td>' + r.month + '</td>' +
+      '<td>' + r.province + '</td>' +
+      '<td>' + r.catname + '</td>' +
+      '<td>' + r.item + '</td>' +
+      '<td>' + r.unit + '</td>' +
+      '<td class="num">' + fmtPrice(r) + '</td>';
+    printTbody.appendChild(tr);
+  });
+
+  document.getElementById('printMeta').textContent =
+    'จำนวน ' + rows.length.toLocaleString('th-TH') + ' รายการ';
+
+  window.print();
+}
+
+document.querySelectorAll('thead th[data-key]').forEach(th => {
+  th.addEventListener('click', () => {
+    if (th.getAttribute('data-key') === 'month') return;
+    const key = th.getAttribute('data-key');
+    if (sortKey === key) { sortDir *= -1; } else { sortKey = key; sortDir = 1; }
+    render();
+  });
+});
+
+function resetFilters() {
+  catSel.value = '';
+  searchBox.value = '';
+  sortKey = null;
+  render();
+}
+
+function rowsFromCompact(mv, pv, compact) {
+  return compact.map((row, i) => {
+    const [catcode, itemcode, item, unit, price] = row;
+    let price_num = null, price_disp = '';
+    if (price !== null && price !== undefined) {
+      const s = String(price).replace(/,/g, '').trim();
+      const f = parseFloat(s);
+      price_num = isNaN(f) ? null : f;
+      price_disp = String(price);
+    }
+    return {
+      id: pv + '|' + mv + '|' + (itemcode || '') + '|' + i,
+      month: MONTH_LABEL.get(mv) || mv,
+      monthcode: mv,
+      province: pv,
+      catcode,
+      catname: CAT_NAME.get(catcode) || catcode,
+      itemcode: itemcode || '',
+      item,
+      unit: unit || '',
+      price_num,
+      price_disp
+    };
+  });
+}
+
+async function fetchProvinceRows(mv, pv) {
+  const url = BASE_URL + encodeURIComponent(mv) + '/' + encodeURIComponent(pv) + '.json';
+  const res = await fetch(url, {cache: 'no-store'});
+  if (!res.ok) {
+    if (res.status === 404) return [];
+    throw new Error('HTTP ' + res.status + ' (' + pv + ')');
+  }
+  const compact = await res.json();
+  return rowsFromCompact(mv, pv, compact);
+}
+
+async function loadCurrentSelection() {
+  const mv = monthSel.value;
+  const pv = provSel.value;
+
+  if (!mv || !pv) {
+    tableWrap.style.display = 'none';
+    hintBox.style.display = 'block';
+    hintBox.textContent = 'กรุณาเลือกเดือนและจังหวัดก่อน เพื่อโหลดข้อมูลราคา';
+    errorBox.style.display = 'none';
+    DATA = [];
+    DATA_BY_ID = new Map();
+    statsBox.textContent = '';
+    return;
+  }
+
+  const cacheKey = mv + '|' + pv;
+  errorBox.style.display = 'none';
+
+  if (cache[cacheKey]) {
+    DATA = cache[cacheKey];
+    DATA_BY_ID = new Map(DATA.map(r => [r.id, r]));
+    hintBox.style.display = 'none';
+    tableWrap.style.display = 'block';
+    render();
+    return;
+  }
+
+  hintBox.style.display = 'block';
+  tableWrap.style.display = 'none';
+
+  try {
+    let rows;
+    if (pv === ALL_PROVINCES) {
+      hintBox.textContent = 'กำลังโหลดข้อมูลทุกจังหวัด ' + (MONTH_LABEL.get(mv) || mv) + ' ...';
+      const results = await Promise.all(PROVINCES.map(p => fetchProvinceRows(mv, p)));
+      rows = results.flat();
+      if (rows.length === 0) {
+        hintBox.textContent = 'ไม่มีข้อมูลสำหรับ ' + (MONTH_LABEL.get(mv) || mv) + ' ในทุกจังหวัด';
+        return;
+      }
+    } else {
+      hintBox.textContent = 'กำลังโหลดข้อมูล ' + (MONTH_LABEL.get(mv) || mv) + ' ' + pv + ' ...';
+      rows = await fetchProvinceRows(mv, pv);
+      if (rows.length === 0) {
+        hintBox.textContent = 'ไม่มีข้อมูลสำหรับ ' + (MONTH_LABEL.get(mv) || mv) + ' จังหวัด' + pv;
+        return;
+      }
+    }
+    cache[cacheKey] = rows;
+    DATA = rows;
+    DATA_BY_ID = new Map(DATA.map(r => [r.id, r]));
+    hintBox.style.display = 'none';
+    tableWrap.style.display = 'block';
+    render();
+  } catch (err) {
+    console.error(err);
+    hintBox.style.display = 'none';
+    errorBox.style.display = 'block';
+    errorBox.textContent = 'โหลดข้อมูลไม่สำเร็จ กรุณาตรวจสอบอินเทอร์เน็ตแล้วลองใหม่';
+  }
+}
+
+monthSel.addEventListener('change', () => { exitShowSelected(); loadCurrentSelection(); });
+provSel.addEventListener('change', () => { exitShowSelected(); loadCurrentSelection(); });
+catSel.addEventListener('change', render);
+
+searchBox.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    render();
+  }
+});
+</script>
+</body>
+</html>
