@@ -4,7 +4,7 @@
 
 **เปิดใช้งาน: https://dstaokung.github.io/material-price-data/** — v1.0
 
-ข้อมูลอ้างอิงจาก [สำนักงานนโยบายและยุทธศาสตร์การค้า กระทรวงพาณิชย์ (tpso.go.th)](https://index.tpso.go.th)
+ข้อมูลอ้างอิงจาก [สำนักงานนโยบายและยุทธศาสตร์การค้า กระทรวงพาณิชย์ (tpso.go.th)](https://index.tpso.go.th/construction-material-prices/prices-building-materials)
 
 ## วิธีใช้
 
